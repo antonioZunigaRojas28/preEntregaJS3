@@ -1,63 +1,11 @@
 /* DECLARACIONES */
 
 let productosSeleccionados = JSON.parse(localStorage.getItem("productoSeleccinados")) || [];
-const catalogoProductos=[
-	{
-		codigo: "1123101",
-		nombre:"Martillo 8Oz",
-		precio:15,
-		img:"./img/Martillo.jpeg"
-	},
-	{
-		codigo: "1123102",
-		nombre:"Huincha 3m x 13mm",
-		precio:14,
-		img:"./img/Huincha.jpeg"
-	},
-	{
-		codigo: "1123103",
-		nombre:"Guantes Multiflex",
-		precio:6,
-		img:"./img/Guantes.jpeg"
-	},
-	{
-		codigo: "1123104",
-		nombre:"Casco Económico",
-		precio:7,
-		img:"./img/Casco.jpeg"
-	},
-	{
-		codigo: "1123105",
-		nombre:"Alicate Universal",
-		precio:13,
-		img:"./img/Alicate.jpeg"
-	},
-	{
-		codigo: "1123106",
-		nombre:"Set Destornilladores",
-		precio:11,
-		img:"./img/Destornilladores.jpeg"
-	},
-	{
-		codigo: "1123107",
-		nombre:"Taladro Percutor",
-		precio:190,
-		img:"./img/Taladro.jpeg"
-	},
-	{
-		codigo: "1123108",
-		nombre:"Amoladora angular",
-		precio:222,
-		img:"./img/Amoladora.jpeg"
-	},
-	{
-		codigo: "1123109",
-		nombre:"Disco para Madera",
-		precio:23,
-		img:"./img/Disco.jpeg"
-	},
-]
+let ultimaCompra = localStorage.getItem("ultimaCompra") || '0';
+let catalogoProductos=[];
+
 const botonCarrito = document.querySelector('#btnCarrito');
+const botonComprar = document.querySelector('#btnComprar');
 const contenedorCarrito = document.querySelector('#carrito');
 const item = document.querySelector('.item');
 const catalogo = document.querySelector('#catalogo');
@@ -66,6 +14,7 @@ const carritoVacio = document.querySelector('#carrito-vacio');
 const totalCompra = document.querySelector('#total-compra');
 const totalPagar = document.querySelector('#pagar');
 botonCarrito.addEventListener('click', () => {contenedorCarrito.classList.toggle('ocultar-carrito');});
+botonComprar.addEventListener('click', () => {comprarProductos();});
 
 /* FUNCIONES */
 
@@ -138,6 +87,40 @@ const actualizarCarrito = () => {
 	totalPagar.innerText = `$ ${total}`;
 	cantidadProductosAComprar.innerText = totalProductos;
 };
+const comprarProductos=()=>{
+
+	(async () => {
+		const inputValue = "";
+		const { value: nombre } = await Swal.fire({
+		  input: "text",
+		  inputLabel: "Ingrese su Nombre",
+		  inputValue,
+		  showCancelButton: true,
+		  confirmButtonText: "Confirmar Compra",
+		  cancelButtonText: "Cancelar",
+		  inputValidator: (value) => {
+			if (!value) {
+			  return "Falta Ingresar su nombre!";
+			}
+		  }
+		});
+		if (nombre) {
+			ultimaCompra	=	(parseInt(ultimaCompra) + 1).toString();
+			localStorage.setItem("ultimaCompra", ultimaCompra);
+
+			let Datetime = luxon.DateTime;
+			const hoy=Datetime.now();
+			
+			productosSeleccionados.splice(0);
+			actualizarCarrito();
+			Swal.fire({
+				title: "¡Gracias por tu compra!",
+				html: `<h4>Orden de Compra N°: 0001-${ultimaCompra}</h4><p>=================================</p><p>${nombre}</p><p>${hoy.toFormat('DDDD')}</p>`,
+				icon: "success"
+			  });
+		}
+	})()		
+}
 
 /* EVENTOS */
 
@@ -169,22 +152,59 @@ catalogo.addEventListener('click', e => {
 		} else {
 			productosSeleccionados = [...productosSeleccionados, datosProductoSeleccionado];
 		}
-
 		actualizarCarrito();
+
+		Toastify({
+			text: `${datosProductoSeleccionado.nombre} | agregado al carrito`,
+			duration: 5000,
+			style:{
+				background: "linear-gradient(to right, rgb(245, 230, 97), rgb(255, 255, 255))",
+				color: "rgb(0,0,0)",
+				borderRadius: "20px"
+			}	
+			}).showToast();
 	}
 });
 
 item.addEventListener('click', e => {
+
 	if (e.target.classList.contains('btn-eliminar')) {
 		let producto = e.target.parentElement;
 		let codigo = producto.querySelector('.codigo').textContent;
-		const posicionItem = productosSeleccionados.findIndex(itemProducto=>itemProducto.codigo===codigo);
-		productosSeleccionados.splice(posicionItem,1);
-		actualizarCarrito();
+		let nombre = producto.querySelector('.nombre').textContent;
+		
+		Swal.fire({
+			title: "Estas seguro de ELIMINAR?",
+			text: `Item: ${nombre}`,
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonColor: "#3085d6",
+			cancelButtonColor: "#d33",
+			confirmButtonText: "Si, Eliminar!",
+			cancelButtonText: "Cancelar"
+		  }).then((result) => {
+			if (result.isConfirmed) {
+				const posicionItem = productosSeleccionados.findIndex(itemProducto=>itemProducto.codigo===codigo);
+				productosSeleccionados.splice(posicionItem,1);
+				actualizarCarrito();
+				
+				Swal.fire({
+					title: "Eliminado!",
+					text: "El item ha sido eliminado.",
+					icon: "success"
+			  	});
+			}
+		  });
 	}
 });
 
 /* INICIO */
 
-mostrarCatalogo(catalogoProductos);
+fetch('./datos/producto.json')
+	.then((res) => res.json())
+	.then((data) => {
+		catalogoProductos = [...data];
+		mostrarCatalogo(catalogoProductos);
+	})
+
 actualizarCarrito();

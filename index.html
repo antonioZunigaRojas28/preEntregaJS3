@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferreterias ANTONIO</title>
     <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">    
 </head>
 <body>
     <header>
@@ -35,6 +36,7 @@
                 </div>
 
                 <div class="total-compra ocultar" id="total-compra">
+                    <button id="btnComprar" >COMPRAR</button>
                     <h3>Total:</h3>
                     <span class="pagar" id="pagar">$200</span>
                 </div>
@@ -46,7 +48,10 @@
     <main class="catalogo" id="catalogo">
         <!-- Aqui se mostrara el catalogo de productos -->
     </main>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="./js/script.js"></script>
 </body>
 </html>
